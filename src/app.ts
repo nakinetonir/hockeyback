@@ -11,7 +11,7 @@ import teamsRoutes from './routes/teams.routes.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { errorHandler } from './middleware/error-handler.js';
 
-export const app = express();
+const app = express();
 
 app.use(
   cors({
@@ -23,6 +23,7 @@ app.use(
     }
   })
 );
+
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -47,3 +48,6 @@ app.use('/api/teams', teamsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+export { app };
+export default app;

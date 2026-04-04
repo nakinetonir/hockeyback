@@ -5,7 +5,7 @@ import { buildSearchFilter, getPagination } from '../models/common.js';
 
 export async function getGoalies(req: Request, res: Response) {
   const { page, limit, skip } = getPagination(req.query);
-  const filter = buildSearchFilter(req.query, ['goalie', 'team']);
+  const filter = buildSearchFilter(req.query, ['goalie']);
 
   const [items, total] = await Promise.all([
     GoalieTotalModel.find(filter).sort({ save_pct: -1, shots: -1, goalie: 1 }).skip(skip).limit(limit).lean(),

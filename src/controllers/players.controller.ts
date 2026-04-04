@@ -5,7 +5,7 @@ import { buildSearchFilter, getPagination } from '../models/common.js';
 
 export async function getPlayers(req: Request, res: Response) {
   const { page, limit, skip } = getPagination(req.query);
-  const filter = buildSearchFilter(req.query, ['player', 'team']);
+  const filter = buildSearchFilter(req.query, ['player']);
 
   const [items, total] = await Promise.all([
     PlayerTotalModel.find(filter).sort({ goals: -1, assists: -1, player: 1 }).skip(skip).limit(limit).lean(),

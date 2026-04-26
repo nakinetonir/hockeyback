@@ -2,36 +2,44 @@ import { Request, Response } from 'express';
 import { MatchModel } from '../models/match.model.js';
 import { GoalieMatchStatModel } from '../models/goalie-match-stat.model.js';
 import { PlayerMatchStatModel } from '../models/player-match-stat.model.js';
-import { getPagination } from '../models/common.js';
+import { buildLeagueFilter, escapeRegex, getPagination } from '../models/common.js';
+
+function addAnd(filter: Record<string, unknown>, clause: Record<string, unknown>) {
+  if (Object.keys(clause).length === 0) {
+    return filter;
+  }
+  if (Object.keys(filter).length === 0) {
+    return clause;
+  }
+  return { $and: [filter, clause] };
+}
 
 export async function getMatches(req: Request, res: Response) {
   const { page, limit, skip } = getPagination(req.query);
-  const { team, search } = req.query as { team?: string; search?: string };
+  const { team, search } = req.query as { team?: string; search?: string; league_key?: string };
 
-  const filter: Record<string, unknown> = {};
+  let filter: Record<string, unknown> = buildLeagueFilter(req.query);
 
   if (team) {
-    filter.$or = [
-      { home_team: new RegExp(team, 'i') },
-      { away_team: new RegExp(team, 'i') }
-    ];
+    filter = addAnd(filter, {
+      $or: [
+        { home_team: new RegExp(escapeRegex(team), 'i') },
+        { away_team: new RegExp(escapeRegex(team), 'i') }
+      ]
+    });
   }
 
   if (search) {
-    const clauses = [
-      { home_team: new RegExp(search, 'i') },
-      { away_team: new RegExp(search, 'i') },
-      { venue: new RegExp(search, 'i') },
-      { date: new RegExp(search, 'i') },
-      { title: new RegExp(search, 'i') }
-    ];
-
-    if (filter.$or) {
-      filter.$and = [{ $or: filter.$or }, { $or: clauses }];
-      delete filter.$or;
-    } else {
-      filter.$or = clauses;
-    }
+    filter = addAnd(filter, {
+      $or: [
+        { home_team: new RegExp(escapeRegex(search), 'i') },
+        { away_team: new RegExp(escapeRegex(search), 'i') },
+        { venue: new RegExp(escapeRegex(search), 'i') },
+        { date: new RegExp(escapeRegex(search), 'i') },
+        { title: new RegExp(escapeRegex(search), 'i') },
+        { league_name: new RegExp(escapeRegex(search), 'i') }
+      ]
+    });
   }
 
   const [items, total] = await Promise.all([
@@ -42,13 +50,21 @@ export async function getMatches(req: Request, res: Response) {
   res.json({ items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
 }
 
+export async function getMatchesByLeague(req: Request, res: Response) {
+  const originalQuery = req.query;
+  req.query = { ...originalQuery, league_key: req.params.leagueKey };
+  return getMatches(req, res);
+}
+
 export async function getMatchById(req: Request, res: Response) {
   const { id } = req.params;
+  const { league_key } = req.query as { league_key?: string };
+  const leagueFilter = league_key ? { league_key } : {};
 
   const [match, playerStats, goalieStats] = await Promise.all([
-    MatchModel.findOne({ $or: [{ match_id: id }, { _id: id }] }).lean(),
-    PlayerMatchStatModel.find({ match_id: id }).sort({ team: 1, goals: -1, assists: -1, player: 1 }).lean(),
-    GoalieMatchStatModel.find({ match_id: id }).sort({ team: 1, shots: -1, goalie: 1 }).lean()
+    MatchModel.findOne({ ...leagueFilter, $or: [{ match_id: id }, { _id: id }] }).lean(),
+    PlayerMatchStatModel.find({ ...leagueFilter, match_id: id }).sort({ team: 1, goals: -1, assists: -1, player: 1 }).lean(),
+    GoalieMatchStatModel.find({ ...leagueFilter, match_id: id }).sort({ team: 1, shots: -1, goalie: 1 }).lean()
   ]);
 
   if (!match) {

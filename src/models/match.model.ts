@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
 
 export interface Match {
+  league_key?: string;
   match_id?: string;
   league_name?: string;
   season?: string;
@@ -16,6 +17,7 @@ export interface Match {
 
 const matchSchema = new Schema<Match>(
   {
+    league_key: { type: String, index: true },
     match_id: { type: String, index: true },
     league_name: String,
     season: String,

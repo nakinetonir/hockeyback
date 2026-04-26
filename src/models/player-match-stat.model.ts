@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 
 export interface PlayerMatchStat {
+  league_key?: string;
+  league_name?: string;
   match_id?: string;
   player: string;
   team?: string;
@@ -11,6 +13,8 @@ export interface PlayerMatchStat {
 
 const playerMatchStatSchema = new Schema<PlayerMatchStat>(
   {
+    league_key: { type: String, index: true },
+    league_name: String,
     match_id: { type: String, index: true },
     player: { type: String, required: true, index: true },
     team: { type: String, index: true },

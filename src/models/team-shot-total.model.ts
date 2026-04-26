@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 
 export interface TeamShotTotal {
+  league_key?: string;
+  league_name?: string;
   team: string;
   matches?: number;
   shots_for?: number;
@@ -12,6 +14,8 @@ export interface TeamShotTotal {
 
 const teamShotTotalSchema = new Schema<TeamShotTotal>(
   {
+    league_key: { type: String, index: true },
+    league_name: String,
     team: { type: String, required: true, index: true },
     matches: Number,
     shots_for: Number,

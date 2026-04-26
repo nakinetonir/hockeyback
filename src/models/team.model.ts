@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 
 export interface TeamSummary {
+  league_key?: string;
+  league_name?: string;
   team: string;
   matches?: number;
   goals_for?: number;
@@ -16,6 +18,8 @@ export interface TeamSummary {
 
 const teamSchema = new Schema<TeamSummary>(
   {
+    league_key: { type: String, index: true },
+    league_name: String,
     team: { type: String, required: true, index: true },
     matches: Number,
     goals_for: Number,

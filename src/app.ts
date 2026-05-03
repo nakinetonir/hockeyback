@@ -10,6 +10,7 @@ import matchesRoutes from './routes/matches.routes.js';
 import teamsRoutes from './routes/teams.routes.js';
 import teamStatsRoutes from './routes/team-stats.routes.js';
 import teamShotsRoutes from './routes/team-shots.routes.js';
+import standingsRoutes from './routes/standings.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { errorHandler } from './middleware/error-handler.js';
@@ -50,6 +51,7 @@ app.use('/api/matches', matchesRoutes);
 app.use('/api/teams', teamsRoutes);
 app.use('/api/team-stats', teamStatsRoutes);
 app.use('/api/team-shots', teamShotsRoutes);
+app.use('/api/standings', standingsRoutes);
 app.use('/api/reports', reportsRoutes);
 
 app.use(notFoundHandler);
